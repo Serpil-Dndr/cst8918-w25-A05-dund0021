@@ -1,16 +1,15 @@
+# Define config variables
 variable "labelPrefix" {
-  description = "Prefix for resources"
   type        = string
+  description = "Your college username. This will form the beginning of various resource names."
 }
 
 variable "region" {
-  description = "Azure region"
-  type        = string
-  default     = "West US"
+  default = "Canada Central"
 }
 
 variable "admin_username" {
-  description = "Admin username for the VM"
   type        = string
   default     = "azureadmin"
+  description = "The username for the local user account on the VM."
 }

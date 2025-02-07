@@ -1,3 +1,34 @@
+# Configure the Terraform runtime requirements.
+terraform {
+  required_version = ">= 1.1.0"
+
+  required_providers {
+    # Azure Resource Manager provider and version
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 4.16.0"
+    }
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = "2.3.3"
+    }
+  }
+}
+
+
+# Define providers and their config params
+provider "azurerm" {
+  # Leave the features block empty to accept all defaults
+  features {}
+  subscription_id = "63853715-8f78-4ec7-832a-fcdb77d8e567"
+}
+provider "cloudinit" {
+  # Configuration options
+}
+# Define variables:
+
+
+
 # 4.2 Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = "${var.labelPrefix}-A05-RG"
@@ -9,7 +40,9 @@ resource "azurerm_public_ip" "webserver" {
   name                = "${var.labelPrefix}A05PublicIP"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"  # Changed from "Dynamic" to "Static"
+  sku                 = "Standard"  # Ensure the SKU is set to Standard
+  
 }
 # 4.4 Virtual Network
 resource "azurerm_virtual_network" "vnet" {
@@ -69,6 +102,10 @@ resource "azurerm_network_interface" "webserver" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.webserver.id
   }
+  depends_on = [
+    azurerm_subnet.webserver,
+    azurerm_public_ip.webserver
+  ]
 }
 
 # 4.8 Apply the security group
@@ -111,6 +148,7 @@ resource "azurerm_linux_virtual_machine" "webserver" {
     version   = "latest"
   }
 
+
   computer_name                   = "${var.labelPrefix}A05VM"
   admin_username                  = var.admin_username
   disable_password_authentication = true
@@ -118,7 +156,16 @@ resource "azurerm_linux_virtual_machine" "webserver" {
   admin_ssh_key {
     username   = var.admin_username
     public_key = file("~/.ssh/id_rsa.pub")
+    
   }
 
   custom_data = data.cloudinit_config.init.rendered
+}
+# Define output values for later reference
+output "resource_group_name" {
+  value = azurerm_resource_group.rg.name
+}
+
+output "public_ip" {
+  value = azurerm_linux_virtual_machine.webserver.public_ip_address
 }
