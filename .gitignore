@@ -18,8 +18,9 @@
 .sentinel
 # .ssh dir may contain private keys
 .ssh
-.sshkeysd.pub
-.sshkeysd
+sshkeysd
+sshkeysd.pub
+
 .terrascan
 # Terraform dot files
 .terraform
